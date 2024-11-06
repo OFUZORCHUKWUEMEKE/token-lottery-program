@@ -1,4 +1,8 @@
 use anchor_lang::prelude::*;
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token_interface::{mint_to, Mint, MintTo, TokenAccount, TokenInterface}
+};
 
 declare_id!("95wJrxrmf1G73kDy2mpJEWEhPuPnCQQT9RGxyCrnoaur");
 
@@ -44,28 +48,42 @@ pub struct Initialize<'info> {
 #[derive(Accounts)]
 pub struct InitializeLottery<'info>{
     #[account(mut)]
-    pub payer:Signer<'info>,
-    #[account(
-        init,
-        payer=payer,
-        mint::decimals=0,
-        mint::authority=payer,
-        mint::freeze_authority=payer,
-        seeds=[b"collection_mint".as_ref()]
-    )]
-    pub collection_mint:InterfaceAccount<'info,Mint>,
-    #[account(
-        init,
-        payer=payer,
-        token::mint=collection_mint,
-        token::authority=payer,
-        seeds=[]
-    )]
+    pub payer: Signer<'info>,
 
-    pub token_metadata_program:Program<'info,Metadata>,
-    pub associated_token_program:Program<'info,AssociatedToken>,
-    pub token_program:Interface<'info,TokenInterface>,
-    pub system_program:Program<'info,System>
+    #[account(
+        init,
+        payer = payer,
+        mint::decimals = 0,
+        mint::authority = collection_mint,
+        mint::freeze_authority = collection_mint,
+        seeds = [b"collection_mint".as_ref()],
+        bump,
+    )]
+    pub collection_mint: Box<InterfaceAccount<'info, Mint>>,
+
+    /// CHECK: This account will be initialized by the metaplex program
+    #[account(mut)]
+    pub metadata: UncheckedAccount<'info>,
+
+    /// CHECK: This account will be initialized by the metaplex program
+    #[account(mut)]
+    pub master_edition: UncheckedAccount<'info>,
+
+    #[account(
+        init_if_needed,
+        payer = payer,
+        seeds = [b"collection_token_account".as_ref()],
+        bump,
+        token::mint = collection_mint,
+        token::authority = collection_token_account
+    )]
+    pub collection_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
+
+    pub token_program: Interface<'info, TokenInterface>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+    pub token_metadata_program: Program<'info, Metadata>,
+    pub rent: Sysvar<'info, Rent>,
 }
 
 #[account]
