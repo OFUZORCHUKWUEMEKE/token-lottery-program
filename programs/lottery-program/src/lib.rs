@@ -6,7 +6,7 @@ declare_id!("95wJrxrmf1G73kDy2mpJEWEhPuPnCQQT9RGxyCrnoaur");
 pub mod lottery_program {
     use super::*;
 
-    pub fn initialize_config(ctx: Context<Initialize>) -> Result<()> {
+    pub fn initialize_config(ctx: Context<Initialize>,start:u64,end:u64,price:u64) -> Result<()> {
        ctx.accounts.token_lottery.bump = ctx.bumps.token_lottery;
        ctx.accounts.token_lottery.start_time= start;
        ctx.accounts.token_lottery.end_time = end;
@@ -15,9 +15,13 @@ pub mod lottery_program {
        ctx.accounts.token_lottery.lottery_pot_amount = 0;
        ctx.accounts.token_lottery.total_tickets =0;
        ctx.accounts.token_lottery.randomness_account=Pubkey::default();
-       ctx.accounts.token_lottery.winner_chosen= false
+       ctx.accounts.token_lottery.winner_chosen= false;
 
-        Ok(())
+       Ok(())
+    }
+
+    pub fn initialize_lottery(ctx:Context<InitializeLottery>)->Result<()>{
+
     }
 }
 
@@ -34,6 +38,33 @@ pub struct Initialize<'info> {
         bump
     )]
     pub token_lottery:Account<'info,TokenLottery>,
+    pub system_program:Program<'info,System>
+}
+
+#[derive(Accounts)]
+pub struct InitializeLottery<'info>{
+    #[account(mut)]
+    pub payer:Signer<'info>,
+    #[account(
+        init,
+        payer=payer,
+        mint::decimals=0,
+        mint::authority=payer,
+        mint::freeze_authority=payer,
+        seeds=[b"collection_mint".as_ref()]
+    )]
+    pub collection_mint:InterfaceAccount<'info,Mint>,
+    #[account(
+        init,
+        payer=payer,
+        token::mint=collection_mint,
+        token::authority=payer,
+        seeds=[]
+    )]
+
+    pub token_metadata_program:Program<'info,Metadata>,
+    pub associated_token_program:Program<'info,AssociatedToken>,
+    pub token_program:Interface<'info,TokenInterface>,
     pub system_program:Program<'info,System>
 }
 

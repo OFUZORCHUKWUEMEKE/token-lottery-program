@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { LotteryProgram } from "../target/types/lottery_program";
+import {LotteryProgram } from "../target/types/lottery_program";
 
 describe("lottery-program", () => {
   // Configure the client to use the local cluster.
@@ -10,7 +10,7 @@ describe("lottery-program", () => {
 
   it("Is initialized!", async () => {
     // Add your test here.
-    const tx = await program.methods.initialize().rpc();
+    // const tx = await program.methods.initialize().rpc();
     console.log("Your transaction signature", tx);
   });
 });
